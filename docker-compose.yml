@@ -1,0 +1,13 @@
+services:
+  script:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: python main.py
+    environment:
+      - PYTHONUNBUFFERED=1
+    # install dependencies on container start
+    entrypoint: >
+      sh -c "pip install --no-cache-dir -r requirements.txt &&
+             python main.py"
