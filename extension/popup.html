@@ -105,6 +105,67 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    #history {
+      margin-top: 24px;
+    }
+    #history[hidden] {
+      display: none;
+    }
+    h2 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    #historyList {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-height: 210px;
+      overflow-y: auto;
+    }
+    #historyList li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+    #historyList li:hover {
+      background: var(--surface);
+    }
+    .info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .title {
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .date {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .actions {
+      display: flex;
+      flex: none;
+      gap: 6px;
+    }
+    button.small {
+      width: auto;
+      min-width: 56px;
+      padding: 6px 12px;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
+    button.small:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.2);
+    }
   </style>
 </head>
 <body>
@@ -117,6 +178,11 @@
   </header>
   <button id="exportBtn">Create playlist</button>
   <div id="status"></div>
+  <section id="history" hidden>
+    <h2>Recent exports</h2>
+    <ul id="historyList"></ul>
+  </section>
+  <script src="history.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
