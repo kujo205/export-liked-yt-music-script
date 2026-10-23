@@ -102,8 +102,19 @@
     }
   }
 
+  // YouTube answers with a channel-creation prompt instead of a playlist when the account has no channel.
+  function requiresChannelCreation(data) {
+    return Boolean(data.actions?.some(action => action.channelCreationFormEndpoint));
+  }
+
   function extractPlaylistId(data) {
     if (!data.playlistId) {
+      if (requiresChannelCreation(data)) {
+        throw new ExportError(
+          'This Google account has no YouTube channel, which public playlists require. ' +
+            'Create one at youtube.com (profile picture → Create a channel), then try again.'
+        );
+      }
       console.error('[Export Liked Music] No playlistId in response', data);
       const apiMessage = data.error?.message;
       throw new ExportError(
