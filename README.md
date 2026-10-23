@@ -1,4 +1,4 @@
-# Export Liked YouTube Music
+# Liked Music Exporter
 
 Chrome extension that turns your Liked Music into a public playlist, copies the link and opens it.
 

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Export Liked YouTube Music",
+  "name": "Liked Music Exporter",
   "version": "1.0",
-  "description": "Create a shareable playlist from your liked YouTube Music songs",
+  "description": "Turn your YouTube Music liked songs into a public, shareable playlist in one click. Copies the link and opens it.",
   "permissions": ["scripting", "storage"],
   "host_permissions": ["https://music.youtube.com/*"],
   "icons": {
@@ -13,7 +13,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Export Liked YouTube Music",
+    "default_title": "Liked Music Exporter",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png"
