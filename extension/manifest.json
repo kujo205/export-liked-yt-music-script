@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Export Liked YouTube Music",
+  "version": "1.0",
+  "description": "Create a shareable playlist from your liked YouTube Music songs",
+  "permissions": ["tabs", "scripting"],
+  "host_permissions": ["https://music.youtube.com/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Export Liked YouTube Music"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://music.youtube.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
