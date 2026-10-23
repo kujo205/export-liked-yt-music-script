@@ -1,3 +1,5 @@
+const REDIRECT_DELAY_MS = 500;
+
 const exportBtn = document.getElementById('exportBtn');
 const statusDiv = document.getElementById('status');
 
@@ -11,42 +13,55 @@ function showLoading() {
   showStatus('Creating playlist...', 'loading');
 }
 
-function showSuccess(playlistUrl) {
-  exportBtn.disabled = false;
-  showStatus('✓ Playlist created! Redirecting...', 'success');
-
-  // Copy to clipboard
-  navigator.clipboard.writeText(playlistUrl).catch(err => {
-    console.error('Failed to copy:', err);
-  });
-
-  // Redirect to playlist after short delay
-  setTimeout(() => {
-    chrome.tabs.create({ url: playlistUrl });
-    window.close();
-  }, 500);
-}
-
 function showError(message) {
   exportBtn.disabled = false;
   showStatus(`✗ ${message}`, 'error');
 }
 
-exportBtn.addEventListener('click', async () => {
-  showLoading();
-
+async function copyToClipboard(text) {
   try {
-    // Send message to background service worker
-    const response = await chrome.runtime.sendMessage({
-      action: 'createPlaylist'
-    });
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (error) {
+    console.error('[Export Liked Music] Clipboard error', error);
+    return false;
+  }
+}
 
-    if (response.success) {
-      showSuccess(response.playlistUrl);
-    } else {
-      showError(response.error || 'Failed to create playlist');
-    }
+function openPlaylistAndClose(playlistUrl) {
+  setTimeout(() => {
+    chrome.tabs.create({ url: playlistUrl });
+    window.close();
+  }, REDIRECT_DELAY_MS);
+}
+
+async function showSuccess(playlistUrl) {
+  exportBtn.disabled = false;
+  const copied = await copyToClipboard(playlistUrl);
+  showStatus(
+    copied
+      ? '✓ Playlist created! Link copied. Redirecting...'
+      : '✓ Playlist created! (Could not copy the link.) Redirecting...',
+    'success'
+  );
+  openPlaylistAndClose(playlistUrl);
+}
+
+async function requestPlaylist() {
+  const response = await chrome.runtime.sendMessage({ action: 'createPlaylist' });
+  if (!response?.success) {
+    throw new Error(response?.error || 'Failed to create playlist.');
+  }
+  return response.playlistUrl;
+}
+
+async function handleExportClick() {
+  showLoading();
+  try {
+    await showSuccess(await requestPlaylist());
   } catch (error) {
     showError(error.message);
   }
-});
+}
+
+exportBtn.addEventListener('click', handleExportClick);
