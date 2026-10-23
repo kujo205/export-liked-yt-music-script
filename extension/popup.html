@@ -1,60 +1,188 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <style>
+    :root {
+      --bg: #030303;
+      --surface: #212121;
+      --text: #ffffff;
+      --text-secondary: #aaaaaa;
+      --red: #ff0000;
+      --green: #2ba640;
+      --error: #ff6b6b;
+    }
+    * {
+      box-sizing: border-box;
+    }
     body {
-      width: 300px;
-      padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #fff;
+      width: 320px;
+      margin: 0;
+      padding: 20px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Roboto, "YouTube Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    header img {
+      width: 40px;
+      height: 40px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+    p {
+      margin: 2px 0 0;
+      font-size: 12px;
+      color: var(--text-secondary);
     }
     button {
       width: 100%;
-      padding: 12px;
+      padding: 11px 16px;
+      font: inherit;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 500;
       border: none;
-      border-radius: 4px;
-      background: #1f2937;
-      color: white;
+      border-radius: 999px;
+      background: var(--text);
+      color: var(--bg);
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.15s;
     }
-    button:hover {
-      background: #111827;
+    button:hover:not(:disabled) {
+      background: #e6e6e6;
     }
     button:disabled {
-      background: #d1d5db;
+      background: rgba(255, 255, 255, 0.3);
+      color: rgba(3, 3, 3, 0.6);
       cursor: not-allowed;
     }
     #status {
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 4px;
-      font-size: 13px;
-      text-align: center;
       display: none;
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: var(--surface);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    #status.success,
+    #status.error,
+    #status.loading {
+      display: block;
     }
     #status.success {
-      background: #d1fae5;
-      color: #065f46;
-      display: block;
+      border-left: 3px solid var(--green);
     }
     #status.error {
-      background: #fee2e2;
-      color: #991b1b;
-      display: block;
+      border-left: 3px solid var(--error);
+      color: var(--error);
     }
     #status.loading {
-      background: #dbeafe;
-      color: #1e40af;
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-secondary);
+    }
+    #status.loading::before {
+      content: "";
+      flex: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    #history {
+      margin-top: 24px;
+    }
+    #history[hidden] {
+      display: none;
+    }
+    h2 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    #historyList {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-height: 210px;
+      overflow-y: auto;
+    }
+    #historyList li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+    #historyList li:hover {
+      background: var(--surface);
+    }
+    .info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .title {
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .date {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .actions {
+      display: flex;
+      flex: none;
+      gap: 6px;
+    }
+    button.small {
+      width: auto;
+      min-width: 56px;
+      padding: 6px 12px;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
+    button.small:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.2);
     }
   </style>
 </head>
 <body>
-  <button id="exportBtn">Export Liked Music</button>
+  <header>
+    <img src="icons/icon128.png" alt="">
+    <div>
+      <h1>Export Liked Music</h1>
+      <p>Share your likes as a public playlist</p>
+    </div>
+  </header>
+  <button id="exportBtn">Create playlist</button>
   <div id="status"></div>
+  <section id="history" hidden>
+    <h2>Recent exports</h2>
+    <ul id="historyList"></ul>
+  </section>
+  <script src="history.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

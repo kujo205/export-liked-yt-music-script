@@ -7,7 +7,6 @@
   const ORIGIN = 'https://music.youtube.com';
   // Public InnerTube key embedded in every music.youtube.com page (ytcfg.INNERTUBE_API_KEY).
   const API_KEY = 'AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30';
-  const CREATE_PLAYLIST_URL = `${ORIGIN}/youtubei/v1/playlist/create?alt=json&key=${API_KEY}`;
   const LIKED_MUSIC_PLAYLIST_ID = 'LM';
   const ERROR_BODY_PREVIEW_LENGTH = 300;
 
@@ -49,12 +48,9 @@
     return `1.${yyyy}${mm}${dd}.01.00`;
   }
 
-  function buildRequestBody() {
+  function withContext(body) {
     return {
-      title: 'Liked Music',
-      description: 'Music I like',
-      privacyStatus: 'PUBLIC',
-      sourcePlaylistId: LIKED_MUSIC_PLAYLIST_ID,
+      ...body,
       context: {
         client: { clientName: 'WEB_REMIX', clientVersion: buildClientVersion() },
         user: {}
@@ -62,7 +58,9 @@
     };
   }
 
-  async function sendCreatePlaylistRequest() {
+  // POSTs to a youtubei/v1 endpoint and returns the raw Response (not yet checked).
+  async function postInnerTube(endpoint, body) {
+    const url = `${ORIGIN}/youtubei/v1/${endpoint}?alt=json&key=${API_KEY}`;
     const headers = {
       'Content-Type': 'application/json',
       'X-Goog-AuthUser': '0',
@@ -71,10 +69,10 @@
     };
 
     try {
-      return await fetch(CREATE_PLAYLIST_URL, {
+      return await fetch(url, {
         method: 'POST',
         headers,
-        body: JSON.stringify(buildRequestBody()),
+        body: JSON.stringify(withContext(body)),
         credentials: 'include'
       });
     } catch (error) {
@@ -118,11 +116,41 @@
   }
 
   async function createPlaylistFromLikedMusic() {
-    const response = await sendCreatePlaylistRequest();
+    const response = await postInnerTube('playlist/create', {
+      title: 'Liked Music',
+      description: 'Music I like',
+      privacyStatus: 'PUBLIC',
+      sourcePlaylistId: LIKED_MUSIC_PLAYLIST_ID
+    });
     await assertResponseOk(response);
     const playlistId = extractPlaylistId(await parseJson(response));
-    return `${ORIGIN}/playlist?list=${playlistId}`;
+    return { playlistUrl: `${ORIGIN}/playlist?list=${playlistId}` };
   }
+
+  // The browse endpoint answers HTTP 200 even for missing playlists; a real playlist always has a
+  // top-level `contents`, a missing one only has response metadata. Any failure is 'unknown' so
+  // history is never pruned by mistake.
+  async function getPlaylistStatus(playlistId) {
+    try {
+      const response = await postInnerTube('browse', { browseId: `VL${playlistId}` });
+      if (response.status === 404) return 'deleted';
+      if (!response.ok) return 'unknown';
+      const data = await response.json();
+      return data.contents ? 'exists' : 'deleted';
+    } catch {
+      return 'unknown';
+    }
+  }
+
+  async function findExistingPlaylistIds(playlistIds) {
+    const statuses = await Promise.all(playlistIds.map(getPlaylistStatus));
+    return { existingIds: playlistIds.filter((id, i) => statuses[i] !== 'deleted') };
+  }
+
+  const HANDLERS = {
+    createPlaylist: () => createPlaylistFromLikedMusic(),
+    checkPlaylists: request => findExistingPlaylistIds(request.playlistIds)
+  };
 
   function toUserMessage(error) {
     if (error instanceof ExportError) return error.message;
@@ -131,10 +159,11 @@
   }
 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action !== 'createPlaylist') return false;
+    const handler = HANDLERS[request.action];
+    if (!handler) return false;
 
-    createPlaylistFromLikedMusic()
-      .then(playlistUrl => sendResponse({ success: true, playlistUrl }))
+    handler(request)
+      .then(result => sendResponse({ success: true, ...result }))
       .catch(error => sendResponse({ success: false, error: toUserMessage(error) }));
 
     return true; // keep the channel open for the async response
