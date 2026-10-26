@@ -10,6 +10,12 @@ Chrome extension that turns your Liked Music into a public playlist, copies the 
 
 ## Install
 
+### Chrome store installation
+
+Just use this [link](https://chromewebstore.google.com/detail/liked-music-exporter/nncpegdpelgckepjoihjdmobmgbikknn) to install the extension, you are welcome!
+
+### Or you can install dev
+
 1. On this GitHub page click **Code → Download ZIP**.
 2. Unzip it.
 3. In Chrome open `chrome://extensions` and enable **Developer mode** (top right).
